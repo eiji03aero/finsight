@@ -1,0 +1,22 @@
+{
+	"permissions": {
+		"allow": [
+			"Bash(mkdir:*)",
+			"Bash(docker-compose down:*)",
+			"Bash(docker-compose exec api go get:*)",
+			"Bash(docker-compose exec api go mod tidy:*)",
+			"Bash(docker-compose exec:*)",
+			"Bash(docker-compose restart:*)",
+			"mcp__chrome-devtools__click",
+			"mcp__chrome-devtools__take_screenshot",
+			"mcp__chrome-devtools__list_console_messages",
+			"mcp__chrome-devtools__evaluate_script",
+			"mcp__chrome-devtools__navigate_page",
+			"mcp__chrome-devtools__take_snapshot"
+		],
+		"deny": [],
+		"ask": []
+	},
+	"enabledMcpjsonServers": ["chrome-devtools"],
+	"enableAllProjectMcpServers": true
+}

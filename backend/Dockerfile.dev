@@ -1,0 +1,28 @@
+FROM golang:1.25.4-bookworm
+
+# Set working directory
+WORKDIR /app
+
+# Install Air for hot reloading
+RUN go install github.com/air-verse/air@latest
+
+# Install common development tools
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy go mod files first for better caching
+COPY go.mod go.sum* ./
+
+# Download dependencies (if go.mod exists)
+RUN if [ -f go.mod ]; then go mod download; fi
+
+# Copy the rest of the application
+COPY . .
+
+# Expose port
+EXPOSE 8080
+
+# Start Air for hot reloading
+CMD ["air", "-c", ".air.toml"]

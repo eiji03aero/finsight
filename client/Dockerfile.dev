@@ -1,0 +1,23 @@
+FROM node:24.11.1-bookworm
+
+# Set working directory
+WORKDIR /app
+
+# Install common development tools
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Copy the rest of the application
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Use entrypoint script
+ENTRYPOINT ["/entrypoint.sh"]

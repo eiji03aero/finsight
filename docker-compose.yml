@@ -1,0 +1,79 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:18.1-bookworm
+    container_name: finsight-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-finsight_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-finsight_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finsight_password}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      # PostgreSQL 18+ requires mounting at /var/lib/postgresql instead of /var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-finsight_user} -d ${POSTGRES_DB:-finsight_dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - finsight-network
+
+  # Go Backend API
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: finsight-api
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - go_modules:/go/pkg/mod
+    ports:
+      - "28080:8080"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-finsight_dev}
+      DB_USER: ${POSTGRES_USER:-finsight_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-finsight_password}
+      GIN_MODE: ${GIN_MODE:-debug}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - finsight-network
+    stdin_open: true
+    tty: true
+
+  # Node.js Frontend Client
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: finsight-client
+    working_dir: /app
+    volumes:
+      - ./client:/app
+    ports:
+      - "${CLIENT_PORT:-3000}:3000"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+      NODE_ENV: development
+    depends_on:
+      - api
+    networks:
+      - finsight-network
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
+    driver: local
+  go_modules:
+    driver: local
+
+networks:
+  finsight-network:
+    driver: bridge
