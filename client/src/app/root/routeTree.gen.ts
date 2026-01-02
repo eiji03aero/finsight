@@ -9,9 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './../routes/__root'
+import { Route as SignupRouteImport } from './../routes/signup'
 import { Route as Hello_worldRouteImport } from './../routes/hello_world'
 import { Route as IndexRouteImport } from './../routes/index'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Hello_worldRoute = Hello_worldRouteImport.update({
   id: '/hello_world',
   path: '/hello_world',
@@ -26,31 +32,42 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/hello_world': typeof Hello_worldRoute
+  '/signup': typeof SignupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/hello_world': typeof Hello_worldRoute
+  '/signup': typeof SignupRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/hello_world': typeof Hello_worldRoute
+  '/signup': typeof SignupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/hello_world'
+  fullPaths: '/' | '/hello_world' | '/signup'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/hello_world'
-  id: '__root__' | '/' | '/hello_world'
+  to: '/' | '/hello_world' | '/signup'
+  id: '__root__' | '/' | '/hello_world' | '/signup'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   Hello_worldRoute: typeof Hello_worldRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/hello_world': {
       id: '/hello_world'
       path: '/hello_world'
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   Hello_worldRoute: Hello_worldRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

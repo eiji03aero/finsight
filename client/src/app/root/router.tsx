@@ -10,6 +10,9 @@ export const getRouter = () => {
 	const router = createRouter({
 		routeTree,
 		defaultPreload: "intent",
+		context: {
+			queryClient: TanstackQuery.queryClient,
+		},
 	});
 
 	setupRouterSsrQueryIntegration({

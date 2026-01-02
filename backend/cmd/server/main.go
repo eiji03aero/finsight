@@ -1,39 +1,59 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"os"
 
 	"backend/internal/application/usecase"
-	"backend/internal/domain/service"
+	"backend/internal/config"
+	"backend/internal/infrastructure/ent"
 	"backend/internal/infrastructure/http/handler"
 	"backend/internal/infrastructure/http/router"
+	"backend/internal/infrastructure/repositories"
+	"backend/internal/infrastructure/session"
+
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	// 1. 依存関係の初期化 (依存性注入)
-	//    Domain Layer → Application Layer → Infrastructure Layer の順
+	// 1. Database connection
+	cfg := config.AppConfig
+	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
+		cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Name, cfg.Database.Password)
 
-	// Domain Layer
-	messageService := service.NewMessageService()
-
-	// Application Layer
-	helloWorldUsecase := usecase.NewHelloWorldUsecase(messageService)
-
-	// Infrastructure Layer
-	helloWorldHandler := handler.NewHelloWorldHandler(helloWorldUsecase)
-
-	// 2. ルーターのセットアップ
-	r := router.SetupRouter(helloWorldHandler)
-
-	// 3. サーバー起動
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	client, err := ent.Open("postgres", dsn)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
+	defer client.Close()
 
-	log.Printf("Server starting on port %s", port)
-	if err := r.Run(":" + port); err != nil {
+	// Run auto migration (optional - we use manual migrations)
+	// if err := client.Schema.Create(context.Background()); err != nil {
+	// 	log.Fatalf("Failed to create schema: %v", err)
+	// }
+
+	log.Println("Database connection established")
+
+	// 2. Session initialization
+	session.InitStore(cfg.Session.Secret)
+	log.Println("Session store initialized")
+
+	// 3. Repository layer
+	userRepo := repositories.NewUserRepository(client)
+	workspaceRepo := repositories.NewWorkspaceRepository(client)
+
+	// 4. Use case layer
+	signupUseCase := usecase.NewSignupUseCase(userRepo, workspaceRepo, client)
+
+	// 5. Handler layer
+	signupHandler := handler.NewSignupHandler(signupUseCase)
+
+	// 6. Router setup
+	r := router.SetupRouter(signupHandler)
+
+	// 7. Server startup
+	log.Printf("Server starting on port %s", cfg.Server.Port)
+	if err := r.Run(":" + cfg.Server.Port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }

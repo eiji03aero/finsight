@@ -4,7 +4,11 @@
 
 - signup
   - creates user and workspace
-  - dashboard page
+- constitution
+  - generate
+  - to make use of mermaid
+- top page
+  - to be redirected after signup
 - login
 - logout
 

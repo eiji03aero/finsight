@@ -7,25 +7,22 @@ import (
 )
 
 // SetupRouter はGinルーターをセットアップする
-func SetupRouter(helloWorldHandler *handler.HelloWorldHandler) *gin.Engine {
+func SetupRouter(signupHandler *handler.SignupHandler) *gin.Engine {
 	// 1. Ginエンジンの初期化
 	r := gin.Default()
 
 	// 2. ミドルウェアの適用
 	r.Use(middleware.CORS())
 
-	// 3. エンドポイントの登録
-	r.GET("/hello_world", helloWorldHandler.Handle)
-
-	// 4. 将来的なエンドポイント追加のための構造
-	// api := r.Group("/api")
-	// {
-	//     v1 := api.Group("/v1")
-	//     {
-	//         v1.GET("/hello_world", helloWorldHandler.Handle)
-	//         // 他のエンドポイントをここに追加
-	//     }
-	// }
+	// 3. APIエンドポイントの登録
+	api := r.Group("/api")
+	{
+		auth := api.Group("/auth")
+		{
+			auth.POST("/signup", signupHandler.Signup)
+			auth.GET("/session", signupHandler.GetSession)
+		}
+	}
 
 	return r
 }

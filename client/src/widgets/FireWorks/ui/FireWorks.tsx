@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Button } from "@/shared/components/button";
+import { Button } from "@/shared/shadcn/ui/button";
 import { FireworksAnimation } from "@/widgets/FireWorks/lib/fireworks";
 
 export function FireWorks() {
